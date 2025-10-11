@@ -1,0 +1,9 @@
+flask
+transformers
+torch
+pandas
+faiss-cpu
+chromadb
+mermaid-js
+astor
+pytest
