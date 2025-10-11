@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CodeNarrator AI</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>🧠 CodeNarrator AI</h1>
+    <p>Upload your Python code file to analyze its structure.</p>
+
+    <form id="uploadForm" enctype="multipart/form-data">
+      <input type="file" name="code_file" accept=".py" required />
+      <button type="submit">Analyze</button>
+    </form>
+
+    <pre id="output"></pre>
+  </div>
+
+  <script>
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const response = await fetch('/analyze', { method: 'POST', body: formData });
+      const result = await response.json();
+      document.getElementById('output').textContent = JSON.stringify(result, null, 2);
+    });
+  </script>
+</body>
+</html>
