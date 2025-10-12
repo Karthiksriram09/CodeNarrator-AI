@@ -1,0 +1,26 @@
+# --- Core Framework ---
+flask==3.0.3
+
+# --- AI / NLP ---
+transformers==4.44.2
+torch==2.4.1
+tqdm==4.66.5
+
+# --- Code Parsing / Utilities ---
+astor==0.8.1
+pandas==2.2.3
+
+# --- Future: Vector Storage / Retrieval (Phase 3) ---
+faiss-cpu==1.8.0.post1
+chromadb==0.5.5
+
+# --- Visualization ---
+# mermaid-js==0.6.8
+
+# --- Testing ---
+pytest==8.3.3
+
+
+sentencepiece==0.2.0
+protobuf==5.28.3
+
