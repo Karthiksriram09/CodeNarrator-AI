@@ -20,13 +20,59 @@
   </div>
 
   <script>
-    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
+  document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const output = document.getElementById('output');
+    output.style.whiteSpace = 'pre-wrap';
+    output.textContent = "⏳ Analyzing your code... Please wait.";
+
+    try {
       const formData = new FormData(e.target);
-      const response = await fetch('/analyze', { method: 'POST', body: formData });
+      const response = await fetch('/analyze', {
+        method: 'POST',
+        body: formData
+      });
+
+      // Check for backend errors
+      if (!response.ok) {
+        const errorText = await response.text();
+        output.textContent = `❌ Server error (${response.status}): ${errorText}`;
+        return;
+      }
+
       const result = await response.json();
-      document.getElementById('output').textContent = JSON.stringify(result, null, 2);
-    });
-  </script>
+      console.log("Server Response:", result); // ✅ Debugging output
+
+      // If backend success
+      if (result.status === 'success' && Array.isArray(result.analysis)) {
+        output.innerHTML = ""; // Clear old content
+        result.analysis.forEach((item, idx) => {
+          const card = document.createElement('div');
+          card.style.cssText = `
+            background: #f9fafb;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: left;
+          `;
+          card.innerHTML = `
+            <strong>Function ${idx + 1}: ${item.function}</strong><br>
+            🧠 Summary: ${item.summary}
+          `;
+          output.appendChild(card);
+        });
+      } else {
+        output.textContent = `⚠️ Error: ${result.message || 'Unknown error occurred.'}`;
+      }
+
+    } catch (err) {
+      output.textContent = `❌ Network or JS error: ${err.message}`;
+      console.error(err);
+    }
+  });
+</script>
+
 </body>
 </html>

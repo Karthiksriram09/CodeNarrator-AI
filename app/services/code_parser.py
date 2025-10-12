@@ -1,20 +1,25 @@
 import ast
+from .summarizer import summarize_code_snippet
 
 def parse_code_structure(filepath: str):
-    """Parses a Python file and returns its functions and classes."""
+    """Parses a Python file and returns functions + explanations."""
     with open(filepath, 'r', encoding='utf-8') as f:
-        source_code = f.read()
+        source = f.read()
+    tree = ast.parse(source)
 
-    tree = ast.parse(source_code)
-    structure = {
-        'functions': [],
-        'classes': []
-    }
-
+    results = []
     for node in ast.walk(tree):
         if isinstance(node, ast.FunctionDef):
-            structure['functions'].append(node.name)
-        elif isinstance(node, ast.ClassDef):
-            structure['classes'].append(node.name)
-
-    return structure
+            start = node.lineno - 1
+            end = getattr(node, 'end_lineno', start + 5)
+            lines = source.splitlines()[start:end]
+            snippet = "\n".join(lines)
+            try:
+                summary = summarize_code_snippet(snippet)
+            except Exception as e:
+                summary = f"Error summarizing: {e}"
+            results.append({
+                "function": node.name,
+                "summary": summary
+            })
+    return results

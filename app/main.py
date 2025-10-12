@@ -14,23 +14,18 @@ def index():
 
 @app.route('/analyze', methods=['POST'])
 def analyze_code():
-    """Handle file upload and run initial AST parsing"""
     if 'code_file' not in request.files:
         return jsonify({'error': 'No file uploaded'}), 400
-
     file = request.files['code_file']
-    if file.filename == '':
-        return jsonify({'error': 'Empty filename'}), 400
-
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
     file.save(filepath)
 
-    # Call your AST-based parser
     try:
-        structure = parse_code_structure(filepath)
-        return jsonify({'status': 'success', 'structure': structure})
+        analysis = parse_code_structure(filepath)
+        return jsonify({'status': 'success', 'analysis': analysis})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
+
 
 
 if __name__ == '__main__':
