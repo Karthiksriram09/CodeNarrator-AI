@@ -1,13 +1,24 @@
+# Python
 __pycache__/
 *.pyc
 *.pyo
-*.db
-.env
+*.pyd
+*.DS_Store
+
+# Environment
 .venv/
-.env/
+env/
 venv/
-instance/
+.idea/
+.vscode/
+
+# Uploads
+uploads/
+
+# OS files
+.DS_Store
+
+# Cache
 *.log
 *.sqlite3
-node_modules/
-__MACOSX/
+*.db

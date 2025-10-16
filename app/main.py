@@ -6,11 +6,9 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-
 @app.route('/')
 def index():
     return render_template('index.html')
-
 
 @app.route('/analyze', methods=['POST'])
 def analyze_code():
@@ -26,7 +24,6 @@ def analyze_code():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
 
-
-
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5001)
+

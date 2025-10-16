@@ -2,12 +2,13 @@ import ast
 from .summarizer import summarize_code_snippet
 
 def parse_code_structure(filepath: str):
+    """Parse Python source and return a list of functions with summaries."""
     with open(filepath, 'r', encoding='utf-8') as f:
         source = f.read()
-    tree = ast.parse(source)
 
-    results = []
+    tree = ast.parse(source)
     lines = source.splitlines()
+    results = []
 
     for node in ast.walk(tree):
         if isinstance(node, ast.FunctionDef):
