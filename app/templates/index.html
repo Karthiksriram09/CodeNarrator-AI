@@ -4,75 +4,76 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CodeNarrator AI</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <div class="container">
-    <h1>🧠 CodeNarrator AI</h1>
-    <p>Upload your Python code file to analyze its structure.</p>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center font-sans">
+  <div class="w-full max-w-xl bg-white rounded-2xl shadow-xl p-8 text-center space-y-4">
+    <h1 class="text-3xl font-bold text-indigo-600">🧠 CodeNarrator AI</h1>
+    <p class="text-gray-600">Upload your Python code file to analyze its structure.</p>
 
-    <form id="uploadForm" enctype="multipart/form-data">
-      <input type="file" name="code_file" accept=".py" required />
-      <button type="submit">Analyze</button>
+    <form id="uploadForm" class="flex items-center justify-center space-x-3" enctype="multipart/form-data">
+      <input type="file" name="code_file" accept=".py" required
+             class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+      <button type="submit"
+              class="bg-indigo-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all">
+        Analyze
+      </button>
     </form>
 
-    <pre id="output"></pre>
+    <div id="output" class="text-left space-y-4"></div>
   </div>
 
   <script>
-  document.getElementById('uploadForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
+    const uploadForm = document.getElementById('uploadForm');
     const output = document.getElementById('output');
-    output.style.whiteSpace = 'pre-wrap';
-    output.textContent = "⏳ Analyzing your code... Please wait.";
 
-    try {
-      const formData = new FormData(e.target);
-      const response = await fetch('/analyze', {
-        method: 'POST',
-        body: formData
-      });
+    uploadForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      output.innerHTML = `
+        <div class="flex justify-center items-center space-x-2 text-gray-600">
+          <svg class="animate-spin h-5 w-5 text-indigo-600" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+          </svg>
+          <span>Analyzing your code...</span>
+        </div>`;
 
-      // Check for backend errors
-      if (!response.ok) {
-        const errorText = await response.text();
-        output.textContent = `❌ Server error (${response.status}): ${errorText}`;
-        return;
+      try {
+        const formData = new FormData(e.target);
+        const response = await fetch('/analyze', { method: 'POST', body: formData });
+        if (!response.ok) throw new Error(await response.text());
+        const result = await response.json();
+
+        if (result.status === 'success') {
+          output.innerHTML = '';
+          result.analysis.forEach((item, i) => {
+            const card = document.createElement('div');
+            card.className = "bg-gray-100 p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition";
+            card.innerHTML = `
+              <div class="flex justify-between items-start">
+                <h2 class="font-semibold text-indigo-700">Function ${i + 1}: ${item.function}</h2>
+                <button class="text-sm text-gray-500 hover:text-indigo-600 copy-btn" data-summary="${item.summary}">📋 Copy</button>
+              </div>
+              <p class="text-gray-700 mt-2 leading-relaxed">🧠 ${item.summary}</p>`;
+            output.appendChild(card);
+          });
+
+          document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+              await navigator.clipboard.writeText(btn.dataset.summary);
+              btn.textContent = '✅ Copied!';
+              setTimeout(() => (btn.textContent = '📋 Copy'), 1500);
+            });
+          });
+        } else {
+          output.innerHTML = `<p class="text-red-600 font-medium">⚠️ ${result.message}</p>`;
+        }
+      } catch (err) {
+        output.innerHTML = `<p class="text-red-600 font-medium">❌ Network error: ${err.message}</p>`;
+        console.error(err);
       }
-
-      const result = await response.json();
-      console.log("Server Response:", result); // ✅ Debugging output
-
-      // If backend success
-      if (result.status === 'success' && Array.isArray(result.analysis)) {
-        output.innerHTML = ""; // Clear old content
-        result.analysis.forEach((item, idx) => {
-          const card = document.createElement('div');
-          card.style.cssText = `
-            background: #f9fafb;
-            border-radius: 10px;
-            padding: 15px;
-            margin: 10px 0;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            text-align: left;
-          `;
-          card.innerHTML = `
-            <strong>Function ${idx + 1}: ${item.function}</strong><br>
-            🧠 Summary: ${item.summary}
-          `;
-          output.appendChild(card);
-        });
-      } else {
-        output.textContent = `⚠️ Error: ${result.message || 'Unknown error occurred.'}`;
-      }
-
-    } catch (err) {
-      output.textContent = `❌ Network or JS error: ${err.message}`;
-      console.error(err);
-    }
-  });
-</script>
-
+    });
+  </script>
 </body>
 </html>
