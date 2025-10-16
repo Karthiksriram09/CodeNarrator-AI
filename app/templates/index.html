@@ -3,41 +3,60 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CodeNarrator AI</title>
+  <title>CodeNarrator AI – Smart Code Explainer</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center font-sans">
-  <div class="w-full max-w-xl bg-white rounded-2xl shadow-xl p-8 text-center space-y-4">
-    <h1 class="text-3xl font-bold text-indigo-600">🧠 CodeNarrator AI</h1>
-    <p class="text-gray-600">Upload your Python code file to analyze its structure.</p>
+<body class="bg-gradient-to-br from-indigo-50 via-white to-purple-50 min-h-screen flex flex-col items-center justify-center font-[Inter]">
 
-    <form id="uploadForm" class="flex items-center justify-center space-x-3" enctype="multipart/form-data">
+  <!-- Header -->
+  <header class="text-center mb-10">
+    <h1 class="text-4xl font-extrabold text-indigo-700 tracking-tight drop-shadow-sm">🧠 CodeNarrator AI</h1>
+    <p class="text-gray-600 mt-2 max-w-md text-sm">Upload your Python file and let AI summarize every function clearly and intelligently.</p>
+  </header>
+
+  <!-- Upload Card -->
+  <section class="bg-white rounded-2xl shadow-2xl p-8 w-[90%] max-w-3xl">
+    <form id="uploadForm" class="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6" enctype="multipart/form-data">
       <input type="file" name="code_file" accept=".py" required
-             class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+             class="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
       <button type="submit"
-              class="bg-indigo-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all">
+              class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-2 rounded-lg transition-all duration-200">
         Analyze
       </button>
     </form>
 
-    <div id="output" class="text-left space-y-4"></div>
-  </div>
+    <!-- Buttons above result -->
+    <div class="flex justify-end gap-3 mb-3">
+      <button id="exportBtn"
+              class="hidden bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+        📄 Export PDF
+      </button>
+    </div>
+
+    <!-- Output -->
+    <div id="output" class="space-y-4 overflow-y-auto max-h-[65vh] px-1"></div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="text-xs text-gray-400 mt-6">© 2025 CodeNarrator AI by Karthik</footer>
 
   <script>
     const uploadForm = document.getElementById('uploadForm');
     const output = document.getElementById('output');
+    const exportBtn = document.getElementById('exportBtn');
 
     uploadForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       output.innerHTML = `
-        <div class="flex justify-center items-center space-x-2 text-gray-600">
-          <svg class="animate-spin h-5 w-5 text-indigo-600" viewBox="0 0 24 24">
+        <div class="flex justify-center items-center gap-2 text-gray-600 py-10">
+          <svg class="animate-spin h-6 w-6 text-indigo-600" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor"
-                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
           </svg>
-          <span>Analyzing your code...</span>
+          <span class="text-sm font-medium">Analyzing your code...</span>
         </div>`;
+      exportBtn.classList.add('hidden');
 
       try {
         const formData = new FormData(e.target);
@@ -49,13 +68,15 @@
           output.innerHTML = '';
           result.analysis.forEach((item, i) => {
             const card = document.createElement('div');
-            card.className = "bg-gray-100 p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition";
+            card.className = "bg-gray-50 border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-all";
             card.innerHTML = `
               <div class="flex justify-between items-start">
-                <h2 class="font-semibold text-indigo-700">Function ${i + 1}: ${item.function}</h2>
-                <button class="text-sm text-gray-500 hover:text-indigo-600 copy-btn" data-summary="${item.summary}">📋 Copy</button>
+                <h2 class="font-semibold text-indigo-700 text-sm sm:text-base">Function ${i + 1}: ${item.function}</h2>
+                <button class="text-xs text-gray-500 hover:text-indigo-600 copy-btn" data-summary="${item.summary}">
+                  📋 Copy
+                </button>
               </div>
-              <p class="text-gray-700 mt-2 leading-relaxed">🧠 ${item.summary}</p>`;
+              <p class="text-gray-700 mt-2 leading-relaxed text-sm">${item.summary}</p>`;
             output.appendChild(card);
           });
 
@@ -66,13 +87,27 @@
               setTimeout(() => (btn.textContent = '📋 Copy'), 1500);
             });
           });
+
+          exportBtn.classList.remove('hidden');
         } else {
           output.innerHTML = `<p class="text-red-600 font-medium">⚠️ ${result.message}</p>`;
         }
       } catch (err) {
-        output.innerHTML = `<p class="text-red-600 font-medium">❌ Network error: ${err.message}</p>`;
+        output.innerHTML = `<p class="text-red-600 font-medium">❌ Error: ${err.message}</p>`;
         console.error(err);
       }
+    });
+
+    // PDF Export
+    exportBtn.addEventListener('click', () => {
+      const opt = {
+        margin: 0.5,
+        filename: 'CodeNarrator_Report.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(output).save();
     });
   </script>
 </body>
